@@ -25,6 +25,10 @@
 //!   This instruction was deprecated in MIPS64 version 6 to allow for the `beqzalc`,
 //!   `bnezalc`, `beqc`, and `bovc` instructions.
 
+use std::default;
+
+use wasm_bindgen::describe::BOOLEAN;
+
 use super::super::datapath::Datapath;
 use super::constants::*;
 use super::control_signals::{floating_point::*, *};
@@ -101,6 +105,13 @@ enum Stage {
     WriteBack,
 }
 
+#[derive(Default, Copy, Clone, Eq, PartialEq)]
+pub enum CoreSelect {
+    #[default]
+    DatapathCore,
+    TradCore,
+}
+
 impl Stage {
     /// Given a stage, return the next consecutive stage. If the last
     /// stage is given, return the first stage.
@@ -126,6 +137,20 @@ impl Datapath for MipsDatapath {
     type RegisterEnum = super::registers::GpRegisterType;
     type MemoryType = Memory;
 
+    fn execute_instruction_select(&mut self, core_preference: CoreSelect) {
+        match core_preference {
+            CoreSelect::TradCore => {
+                println!("Bob the builder is great");
+                !unimplemented!()
+            }, 
+            CoreSelect::DatapathCore => {
+                self.execute_instruction();
+            }
+        }
+    }
+
+    // Default instruction to execute an instruction.
+    // By default an instruction will be run in the datapath core if possible
     fn execute_instruction(&mut self) {
         // If the last instruction has not finished, finish it instead.
         if self.current_stage != Stage::InstructionFetch {

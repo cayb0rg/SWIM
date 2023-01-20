@@ -1,5 +1,7 @@
 //! Module for the API of a generic datapath.
 
+use crate::emulation_core::mips::datapath::CoreSelect;
+
 /// A generic datapath.
 ///
 /// This has the ability to execute instructions, and to interface with
@@ -32,6 +34,8 @@ pub trait Datapath {
     /// midway through a stage, the current instruction will be finished
     /// instead of executing a new instruction.
     fn execute_instruction(&mut self);
+
+    fn execute_instruction_select(&mut self, core_preference: CoreSelect);
 
     /// Execute a single stage of execution based on the current state of
     /// the datapath. Should the datapath not support stages, assume the
