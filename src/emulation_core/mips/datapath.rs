@@ -25,14 +25,11 @@
 //!   This instruction was deprecated in MIPS64 version 6 to allow for the `beqzalc`,
 //!   `bnezalc`, `beqc`, and `bovc` instructions.
 
-use std::default;
-
-use wasm_bindgen::describe::BOOLEAN;
-
 use super::super::datapath::Datapath;
 use super::constants::*;
 use super::control_signals::{floating_point::*, *};
 use super::instruction::*;
+use super::traditional_core::TradCore;
 use super::{coprocessor::MipsFpCoprocessor, memory::Memory, registers::GpRegisters};
 
 /// An implementation of a datapath for the MIPS64 ISA.
@@ -48,6 +45,10 @@ pub struct MipsDatapath {
 
     /// The currently-active stage in the datapath.
     current_stage: Stage,
+
+    // traditional core object, SHOULD FIND A BETTER PLACE
+    // TO PUT THIS!
+    traditional_core: TradCore,
 }
 
 /// A collection of all the data lines and wires in the datapath.
@@ -140,9 +141,22 @@ impl Datapath for MipsDatapath {
     fn execute_instruction_select(&mut self, core_preference: CoreSelect) {
         match core_preference {
             CoreSelect::TradCore => {
+                // There should be some kind of signal somehow returned to the
+                // frontend to signal which emulation core was used. I am putting
+                // off the design of how the signal will work for now ~Kevin
                 println!("Bob the builder is great");
-                !unimplemented!()
-            }, 
+
+                // self.finish_instruction(); should maybe be called here...
+                
+                self.instruction_fetch();
+                self.instruction = Instruction::from(self.state.instruction);
+                self.traditional_core.execute_instruction(
+                    &self.instruction,
+                    &mut self.memory,
+                    &mut self.registers,
+                    &mut self.coprocessor.fpr,
+                );
+            }
             CoreSelect::DatapathCore => {
                 self.execute_instruction();
             }
