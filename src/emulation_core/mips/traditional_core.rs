@@ -24,22 +24,28 @@ impl TradCore {
     ) {
         println!("Print from execute_instruction");
         registers.gpr[3] = 45;
-        
 
         match instruction {
             Instruction::RType(r) => {
                 println!("instruction is an RType");
                 match r.funct {
                     FUNCT_ADD => {
-                        println!("The funct code is ADD");
-                        println!("{:#?}", r);
+                        // rs + rt goes into rd
+                        
+                        // Should really write code here to detect an
+                        // overflow and send an exception
+                        
+                        registers.gpr[r.rd as usize] = registers.gpr[r.rs as usize]
+                            .wrapping_add(registers.gpr[r.rt as usize])
+                            as u32 as u64;
                     }
                     FUNCT_SUB => {
-                        println!("The funct code is SUB");
-                        println!("{:#?}", r);
+                        registers.gpr[r.rd as usize] = registers.gpr[r.rs as usize]
+                            .wrapping_sub(registers.gpr[r.rt as usize])
+                            as u32 as u64;
                     }
                     _ => {
-                        println!("bla bla bla");
+                        println!("THIS INSTRUCTION IS NOT IMPLIMENTED IN TRAD CORE");
                         println!("{:#?}", r);
                     }
                 }
@@ -50,5 +56,8 @@ impl TradCore {
             Instruction::FpuRType(_) => (),
             _ => unimplemented!(),
         }
+
+        // Clean zero register
+        registers.gpr[0] = 0;
     }
 }

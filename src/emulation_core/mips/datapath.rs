@@ -147,7 +147,7 @@ impl Datapath for MipsDatapath {
                 println!("Bob the builder is great");
 
                 // self.finish_instruction(); should maybe be called here...
-                
+
                 self.instruction_fetch();
                 self.instruction = Instruction::from(self.state.instruction);
                 self.traditional_core.execute_instruction(
