@@ -37,12 +37,12 @@ impl TradCore {
                         
                         registers.gpr[r.rd as usize] = registers.gpr[r.rs as usize]
                             .wrapping_add(registers.gpr[r.rt as usize])
-                            as u32 as u64;
+                            as i32 as i64 as u64;
                     }
                     FUNCT_SUB => {
                         registers.gpr[r.rd as usize] = registers.gpr[r.rs as usize]
                             .wrapping_sub(registers.gpr[r.rt as usize])
-                            as u32 as u64;
+                            as i32 as i64 as u64;
                     }
                     _ => {
                         println!("THIS INSTRUCTION IS NOT IMPLIMENTED IN TRAD CORE");
