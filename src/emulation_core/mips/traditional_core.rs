@@ -13,7 +13,7 @@ impl TradCore {
     pub fn execute_instruction(
         &mut self,
         instruction: &Instruction,
-        _memory: &mut Memory,
+        memory: &mut Memory,
         registers: &mut GpRegisters,
         _fpr: &mut [u64; 32],
     ) {
@@ -45,7 +45,23 @@ impl TradCore {
                     }
                 }
             }
-            Instruction::IType(_i) => {
+            Instruction::IType(i) => {
+                match i.op {
+                    OPCODE_LW => {
+                        let addr: u64 = (registers.gpr[i.rs as usize] as u64)
+                            .wrapping_add(i.immediate as i16 as i64 as u64);
+                        registers.gpr[i.rt as usize] = memory.load_word(addr).unwrap_or(0) as u64;
+                    }
+                    OPCODE_SW => {
+                        let addr: u64 = (registers.gpr[i.rs as usize] as u64)
+                            .wrapping_add(i.immediate as i16 as i64 as u64);
+                        memory.store_word(addr, registers.gpr[i.rt as usize] as u32).expect("Failed store");
+                    }
+                    _ => {
+                        println!("This instruction is unknown");
+                        println!("{:#?}", i);
+                    }
+                }
                 println!("Instruction is an IType")
             }
             Instruction::FpuRType(_) => (),
