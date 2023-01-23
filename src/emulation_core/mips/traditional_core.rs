@@ -39,6 +39,9 @@ impl TradCore {
                             registers.gpr[r.rs as usize].wrapping_sub(registers.gpr[r.rt as usize])
                                 as i32 as i64 as u64;
                     }
+                    FUNCT_SOP30 => {
+                        // the mut instruction will be here, among others
+                    }
                     _ => {
                         println!("THIS INSTRUCTION IS NOT IMPLIMENTED IN TRAD CORE");
                         println!("{:#?}", r);
