@@ -1,12 +1,7 @@
 // use crate::tests::emulation_core::registers;
 
-use crate::emulation_core::mips::constants;
-
-use super::super::datapath::Datapath;
-use super::control_signals::{floating_point::*, *};
-use super::instruction::*;
-use super::{constants::*, instruction};
-use super::{coprocessor::MipsFpCoprocessor, memory::Memory, registers::GpRegisters};
+use super::{constants::*, instruction::*};
+use super::{memory::Memory, registers::GpRegisters};
 
 // This struct may never need to use fields
 #[derive(Default)]
@@ -31,18 +26,18 @@ impl TradCore {
                 match r.funct {
                     FUNCT_ADD => {
                         // rs + rt goes into rd
-                        
+
                         // Should really write code here to detect an
                         // overflow and send an exception
-                        
-                        registers.gpr[r.rd as usize] = registers.gpr[r.rs as usize]
-                            .wrapping_add(registers.gpr[r.rt as usize])
-                            as i32 as i64 as u64;
+
+                        registers.gpr[r.rd as usize] =
+                            registers.gpr[r.rs as usize].wrapping_add(registers.gpr[r.rt as usize])
+                                as i32 as i64 as u64;
                     }
                     FUNCT_SUB => {
-                        registers.gpr[r.rd as usize] = registers.gpr[r.rs as usize]
-                            .wrapping_sub(registers.gpr[r.rt as usize])
-                            as i32 as i64 as u64;
+                        registers.gpr[r.rd as usize] =
+                            registers.gpr[r.rs as usize].wrapping_sub(registers.gpr[r.rt as usize])
+                                as i32 as i64 as u64;
                     }
                     _ => {
                         println!("THIS INSTRUCTION IS NOT IMPLIMENTED IN TRAD CORE");
@@ -50,7 +45,7 @@ impl TradCore {
                     }
                 }
             }
-            Instruction::IType(i) => {
+            Instruction::IType(_i) => {
                 println!("Instruction is an IType")
             }
             Instruction::FpuRType(_) => (),
