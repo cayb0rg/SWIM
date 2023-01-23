@@ -339,7 +339,7 @@ impl MipsDatapath {
     /// Extend the sign of a 16-bit value to the other 48 bits of a
     /// 64-bit value.
     fn sign_extend(&mut self) {
-        self.state.sign_extend = ((self.state.imm as i16) as i64) as u64;
+        self.state.sign_extend = self.state.imm as i16 as i64 as u64;
     }
 
     /// Set rtype control signals. This function may have a Match statement added
