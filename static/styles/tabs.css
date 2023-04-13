@@ -1,5 +1,5 @@
 .tabs {
-    width: 100%;
+    display: inline-block;
     margin: 0 auto;
 }
 .tabs .tab:first-child {
@@ -25,10 +25,18 @@
     opacity: 1;
     background-color: gray;
 }
-.tab:focus {
-    background-color: #2e2b2b;
-    color: white;
+.tab:focus,
+.tab:active {
+    background-color: #2e2b2b !important;
+    color: white !important;
 }
 .tab::after {
     background-color: #2e2b2b;
+}
+.pressed {
+    background-color: #2e2b2b ;
+    padding: 2px 16px 2px 16px;
+    color: white;
+    text-align: center;
+    display: inline-block;
 }

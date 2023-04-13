@@ -95,8 +95,8 @@ fn app() -> Html {
 
         use_callback(
             move |_, text_model| {
-                let mut datapath = (*datapath).borrow_mut();
-                let text_model = (*text_model).borrow_mut();
+                let mut datapath = datapath.borrow_mut();
+                let text_model = text_model.borrow_mut();
 
                 // parses through the code to assemble the binary and retrieves programinfo for error marking and mouse hover
                 let (program_info, assembled) = parser(text_model.get_value());
@@ -136,7 +136,7 @@ fn app() -> Html {
                 executed_line.pop();
                 not_highlighted.set(
                     0,
-                    (*curr_model)
+                    curr_model
                         .delta_decorations(&not_highlighted, &executed_line, None)
                         .into(),
                 );
@@ -144,13 +144,14 @@ fn app() -> Html {
                 // Proceed with loading into memory and expand pseudo-instructions if there are no errors.
                 if marker_jsarray.length() == 0 {
                     // Load the binary into the datapath's memory
-                    match (*datapath).initialize(assembled) {
+                    match datapath.initialize(assembled) {
                         Ok(_) => (),
                         // In the case of an error, stop early.
                         Err(_) => return,
                     }
                     // log!(datapath.memory.to_string());
                     text_model.set_value(&program_info.updated_monaco_string); // Expands pseudo-instructions to their hardware counterpart.
+                    datapath.registers.pc = program_info.pc_starting_point as u64;
                 }
 
                 trigger.force_update();
@@ -174,9 +175,9 @@ fn app() -> Html {
 
         use_callback(
             move |_, _| {
-                let mut datapath = (*datapath).borrow_mut();
-                let text_model = (*text_model).borrow_mut();
-                let highlight_decor = (*highlight_decor).borrow_mut();
+                let mut datapath = datapath.borrow_mut();
+                let text_model = text_model.borrow_mut();
+                let highlight_decor = highlight_decor.borrow_mut();
 
                 // Pull ProgramInfo from the parser
                 let (programinfo, _) = parser(text_model.get_value());
@@ -212,7 +213,7 @@ fn app() -> Html {
                 // it may look ugly, but it makes sense. Uncomment debug statements to see why.
                 not_highlighted.set(
                     0,
-                    (*curr_model)
+                    curr_model
                         .delta_decorations(&not_highlighted, &executed_line, None)
                         .into(),
                 );
@@ -221,7 +222,7 @@ fn app() -> Html {
                 // log!(executed_line.at(0));
                 // log!(not_highlighted.at(0));
 
-                (*datapath).execute_instruction();
+                datapath.execute_instruction();
 
                 // done with the highlight, prepare for the next one.
                 executed_line.pop();
@@ -246,11 +247,11 @@ fn app() -> Html {
 
         use_callback(
             move |_, _| {
-                let mut datapath = (*datapath).borrow_mut();
-                let highlight_decor = (*highlight_decor).borrow_mut();
+                let mut datapath = datapath.borrow_mut();
+                let highlight_decor = highlight_decor.borrow_mut();
                 if datapath.current_stage == Stage::InstructionDecode {
                     // highlight on InstructionDecode since syscall stops at that stage.
-                    let text_model = (*text_model).borrow_mut();
+                    let text_model = text_model.borrow_mut();
                     let (programinfo, _) = parser(text_model.get_value());
                     let list_of_line_numbers = programinfo.address_to_line_number;
                     let index = datapath.registers.pc as usize / 4;
@@ -270,14 +271,14 @@ fn app() -> Html {
                     executed_line.push(&highlight_js);
                     not_highlighted.set(
                         0,
-                        (*curr_model)
+                        curr_model
                             .delta_decorations(&not_highlighted, &executed_line, None)
                             .into(),
                     );
-                    (*datapath).execute_stage();
+                    datapath.execute_stage();
                     executed_line.pop();
                 } else {
-                    (*datapath).execute_stage();
+                    datapath.execute_stage();
                 }
                 trigger.force_update();
             },
@@ -297,17 +298,17 @@ fn app() -> Html {
 
         use_callback(
             move |_, _| {
-                let mut datapath = (*datapath).borrow_mut();
-                let text_model = (*text_model).borrow_mut();
+                let mut datapath = datapath.borrow_mut();
+                let text_model = text_model.borrow_mut();
                 let curr_model = text_model.as_ref();
                 executed_line.pop();
                 not_highlighted.set(
                     0,
-                    (*curr_model)
+                    curr_model
                         .delta_decorations(&not_highlighted, &executed_line, None)
                         .into(),
                 );
-                (*datapath).reset();
+                datapath.reset();
                 trigger.force_update();
             },
             (),
@@ -336,7 +337,7 @@ fn app() -> Html {
         use_event_with_window("mouseover", move |_: MouseEvent| {
             let hover_jsarray = hover_jsarray.clone();
             let hover_decor_array = hover_decor_array.clone();
-            let text_model = (*text_model).borrow_mut();
+            let text_model = text_model.borrow_mut();
             let curr_model = text_model.as_ref();
             let (program_info, _) = parser(text_model.get_value());
 
@@ -377,11 +378,8 @@ fn app() -> Html {
             // log!(hover_jsarray.clone());
 
             // properly pass the handlers onto the array
-            let new_hover_decor_array = (*curr_model).delta_decorations(
-                &hover_decor_array.borrow_mut(),
-                &hover_jsarray,
-                None,
-            );
+            let new_hover_decor_array =
+                curr_model.delta_decorations(&hover_decor_array.borrow_mut(), &hover_jsarray, None);
             *hover_decor_array.borrow_mut() = new_hover_decor_array;
 
             // log!("These are the arrays after calling Delta Decorations");
@@ -411,7 +409,7 @@ fn app() -> Html {
         let text_model = Rc::clone(&text_model);
         use_callback(
             move |e: Event, _| {
-                let text_model = (*text_model).borrow_mut().clone();
+                let text_model = text_model.borrow_mut().clone();
                 let input: HtmlInputElement = e.target_unchecked_into();
                 // gloo making the code readable and easy to implement
                 let filelist = FileList::from(input.files().unwrap());
@@ -440,8 +438,8 @@ fn app() -> Html {
                     <div>
                         <div class="buttons">
                             <button class="button" onclick={on_assemble_clicked}>{ "Assemble " }<i class="fa-sharp fa-solid fa-hammer"></i></button>
-                            <button class="button" onclick={on_execute_clicked} disabled={(*datapath).borrow().is_halted()}>{ "Execute " }<i class="fa-regular fa-circle-play"></i></button>
-                            <button class="button" onclick={on_execute_stage_clicked} disabled={(*datapath).borrow().is_halted()}> { "Execute Stage " }<i class="fa-solid fa-play"></i></button>
+                            <button class="button" onclick={on_execute_clicked} disabled={datapath.borrow().is_halted()}>{ "Execute " }<i class="fa-regular fa-circle-play"></i></button>
+                            <button class="button" onclick={on_execute_stage_clicked} disabled={datapath.borrow().is_halted()}> { "Execute Stage " }<i class="fa-solid fa-play"></i></button>
                             <button class="button" onclick={on_reset_clicked}>{ "Reset " }<i class="fa-solid fa-arrow-rotate-left"></i></button>
                             //<input type="button" value="Load File" onclick={upload_clicked_callback} />
                             <button class="button" onclick={upload_clicked_callback}>{"Upload File "}<i class="fa-sharp fa-solid fa-upload"></i></button>
@@ -452,7 +450,7 @@ fn app() -> Html {
 
                     // Editor
                     <div style="flex-grow: 1; min-height: 4em;">
-                        <SwimEditor text_model={(*text_model).borrow().clone()} />
+                        <SwimEditor text_model={text_model.borrow().clone()} />
                     </div>
 
                     // Console
